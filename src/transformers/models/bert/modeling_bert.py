@@ -237,7 +237,7 @@ class BertSelfAttention(nn.Module):
 
         self.dropout = nn.Dropout(config.attention_probs_dropout_prob)
         self.position_embedding_type = getattr(config, "position_embedding_type", "absolute")
-        logger.info(f"Position embedding type: {self.position_embedding_type}")
+        logger.warning(f"Position embedding type: {self.position_embedding_type}")
 
         if self.position_embedding_type == "relative_key" or self.position_embedding_type == "relative_key_query":
             self.max_position_embeddings = config.max_position_embeddings
