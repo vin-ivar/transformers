@@ -321,7 +321,7 @@ class BertSelfAttention(nn.Module):
 
         scale = 1
         if self.position_embedding_type == 'separate':
-            scale = 2
+            scale = 1
 
         attention_scores = attention_scores / math.sqrt(self.attention_head_size * scale)
         if attention_mask is not None:
@@ -580,7 +580,7 @@ class BertEncoder(nn.Module):
             attention_bias = torch.matmul(query_bias, key_bias.transpose(-1, -2))
 
             # scale
-            attention_bias *= float(self.attention_head_size * 2) ** -0.5
+            attention_bias *= float(self.attention_head_size) ** -0.5
 
             cls_2_other = attention_bias[:, :, 0, 0]
             other_2_cls = attention_bias[:, :, 1, 1]
