@@ -203,17 +203,21 @@ class BertEmbeddings(nn.Module):
 
         embeddings = inputs_embeds + token_type_embeddings
 
-        embeddings = self.LayerNorm(embeddings)
-        embeddings = self.dropout(embeddings)
-
         if self.position_embedding_type == "separate":
             position_embeddings = self.position_embeddings(position_ids)
             position_embeddings = self.LayerNorm(position_embeddings)
+
+            embeddings = self.LayerNorm(embeddings)
+            embeddings = self.dropout(embeddings)
+
             embeddings = (embeddings, position_embeddings)
 
-        elif self.position_embedding_type == "absolute":
-            position_embeddings = self.position_embeddings(position_ids)
-            embeddings += position_embeddings
+        else:
+            if self.position_embedding_type == "absolute":
+                position_embeddings = self.position_embeddings(position_ids)
+                embeddings += position_embeddings
+            embeddings = self.LayerNorm(embeddings)
+            embeddings = self.dropout(embeddings)
 
         return embeddings
 
@@ -237,8 +241,6 @@ class BertSelfAttention(nn.Module):
 
         self.dropout = nn.Dropout(config.attention_probs_dropout_prob)
         self.position_embedding_type = getattr(config, "position_embedding_type", "absolute")
-        logger.warning(f"Position embedding type: {self.position_embedding_type}")
-
         if self.position_embedding_type == "relative_key" or self.position_embedding_type == "relative_key_query":
             self.max_position_embeddings = config.max_position_embeddings
             self.distance_embedding = nn.Embedding(2 * config.max_position_embeddings - 1, self.attention_head_size)
@@ -476,7 +478,6 @@ class BertLayer(nn.Module):
         self_attn_past_key_value = past_key_value[:2] if past_key_value is not None else None
         self_attention_outputs = self.attention(
             hidden_states,
-            attention_bias,
             attention_mask,
             head_mask,
             output_attentions=output_attentions,
